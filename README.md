@@ -1,36 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OpenRouter Models Dashboard 🤖
 
-## Getting Started
+A modern, multilingual Next.js application for exploring and comparing AI models from OpenRouter. Built with TypeScript, Tailwind CSS, and shadcn/ui components.
 
-First, run the development server:
+## ✨ Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **🌍 Multilingual Support**: Full Arabic and English localization with RTL support
+- **🔍 Smart Search**: Search models by name, ID, or description
+- **📊 Comprehensive Model Info**: View detailed specifications, pricing, and capabilities
+- **🎨 Modern UI**: Built with shadcn/ui components and Tailwind CSS
+- **📱 Responsive Design**: Works perfectly on all device sizes
+- **⚡ Real-time Data**: Fetches live data from OpenRouter API (no API key required)
+- **🚀 Fast Performance**: Optimized with Next.js 15 and modern React patterns
+
+## 🚀 Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Zizwar/openrouter-models.git
+   cd openrouter-models
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser**
+   - English: http://localhost:3000/en
+   - Arabic: http://localhost:3000/ar
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Icons**: Lucide React
+- **Internationalization**: Custom i18n system
+- **Data Source**: OpenRouter API
+
+## 📁 Project Structure
+
+```
+├── src/
+│   ├── app/
+│   │   ├── [locale]/
+│   │   │   ├── page.tsx              # Models listing page
+│   │   │   ├── models/[modelId]/
+│   │   │   │   └── page.tsx          # Model details page
+│   │   │   └── layout.tsx            # Locale-specific layout
+│   │   ├── globals.css               # Global styles
+│   │   └── page.tsx                  # Root redirect
+│   ├── components/
+│   │   ├── dashboard/
+│   │   │   └── LanguageSelector.tsx  # Language switcher
+│   │   ├── models/
+│   │   │   ├── ModelCard.tsx         # Model card component
+│   │   │   └── SearchFilter.tsx      # Search input
+│   │   └── ui/                       # shadcn/ui components
+│   ├── lib/
+│   │   ├── openrouter.ts             # OpenRouter API integration
+│   │   ├── i18n.ts                   # Internationalization utilities
+│   │   └── utils.ts                  # Utility functions
+│   └── middleware.ts                 # Routing middleware
+├── messages/
+│   ├── en.json                       # English translations
+│   └── ar.json                       # Arabic translations
+└── components.json                   # shadcn/ui configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌐 API Integration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This application uses the public OpenRouter Models API:
+- **Endpoint**: `https://openrouter.ai/api/v1/models`
+- **Authentication**: None required
+- **Rate Limits**: Standard public API limits apply
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🎨 UI Components
 
-## Learn More
+Built with [shadcn/ui](https://ui.shadcn.com/) components:
+- Card, Button, Badge, Input
+- Responsive grid layouts
+- Dark/light mode support (via Tailwind)
 
-To learn more about Next.js, take a look at the following resources:
+## 🌍 Internationalization
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Languages**: English (en), Arabic (ar)
+- **RTL Support**: Full right-to-left layout for Arabic
+- **Dynamic Switching**: Change language without page reload
+- **Custom System**: Lightweight i18n implementation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📱 Responsive Design
 
-## Deploy on Vercel
+- **Mobile First**: Optimized for mobile devices
+- **Breakpoints**: sm, md, lg, xl, 2xl
+- **Grid Layouts**: Adaptive columns based on screen size
+- **Touch Friendly**: Large tap targets and smooth scrolling
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚢 Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Vercel (Recommended)
+```bash
+npm install -g vercel
+vercel
+```
+
+### Docker
+```bash
+docker build -t openrouter-models .
+docker run -p 3000:3000 openrouter-models
+```
+
+### Static Export
+```bash
+npm run build
+npm run export
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+- [OpenRouter](https://openrouter.ai/) for providing the models API
+- [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
+- [Lucide](https://lucide.dev/) for the icons
+- [Next.js](https://nextjs.org/) for the framework
+
+## 📞 Support
+
+If you have any questions or need help, please:
+- Open an issue on GitHub
+- Check existing issues for solutions
+- Review the documentation
+
+---
+
+<div align="center">
+  <p>Built with ❤️ using Next.js and OpenRouter API</p>
+  <p>🤖 Generated with <a href="https://claude.ai/code">Claude Code</a></p>
+</div>
