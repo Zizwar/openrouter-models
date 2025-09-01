@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import LanguageSelector from '@/components/dashboard/LanguageSelector';
 import ModelCard from '@/components/models/ModelCard';
-import SearchFilter from '@/components/models/SearchFilter';
+import AdvancedFilter, { FilterOptions } from '@/components/models/AdvancedFilter';
+import { Pagination } from '@/components/ui/pagination';
 import { t, type Locale } from '@/lib/i18n';
-import { fetchModels, OpenRouterModel } from '@/lib/openrouter';
+import { fetchModels, fetchProviders, OpenRouterModel, OpenRouterProvider } from '@/lib/openrouter';
+import { useFilteredModels } from '@/hooks/useFilteredModels';
 
 interface HomePageProps {
   params: Promise<{ locale: string }>;
@@ -14,9 +17,24 @@ interface HomePageProps {
 export default function HomePage({ params }: HomePageProps) {
   const [locale, setLocale] = useState<Locale>('en');
   const [models, setModels] = useState<OpenRouterModel[]>([]);
-  const [filteredModels, setFilteredModels] = useState<OpenRouterModel[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [providers, setProviders] = useState<OpenRouterProvider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterOptions>({
+    search: '',
+    providers: [],
+    priceRange: { min: null, max: null },
+    contextLength: { min: null, max: null },
+    modality: [],
+    isModerated: null,
+  });
+
+  const {
+    totalCount,
+    currentPage,
+    totalPages,
+    paginatedModels,
+    setPage,
+  } = useFilteredModels(models, providers, filters, 20);
 
   useEffect(() => {
     params.then(({ locale: paramLocale }) => {
@@ -25,36 +43,25 @@ export default function HomePage({ params }: HomePageProps) {
   }, [params]);
 
   useEffect(() => {
-    const loadModels = async () => {
+    const loadData = async () => {
       setLoading(true);
       try {
-        const modelsData = await fetchModels();
+        const [modelsData, providersData] = await Promise.all([
+          fetchModels(),
+          fetchProviders()
+        ]);
         setModels(modelsData);
-        setFilteredModels(modelsData); // Show ALL models
+        setProviders(providersData);
       } catch (error) {
-        console.error('Failed to load models:', error);
+        console.error('Failed to load data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadModels();
+    loadData();
   }, []);
 
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredModels(models); // Show ALL models when no search
-      return;
-    }
-
-    const filtered = models.filter(
-      (model) =>
-        model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        model.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (model.description && model.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    setFilteredModels(filtered);
-  }, [searchTerm, models]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,6 +74,14 @@ export default function HomePage({ params }: HomePageProps) {
               <p className="text-sm text-muted-foreground mt-1">
                 {t('models.subtitle', locale)}
               </p>
+              <div className="mt-2">
+                <Link 
+                  href={`/${locale}/providers`}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Browse Providers →
+                </Link>
+              </div>
             </div>
             <LanguageSelector />
           </div>
@@ -75,11 +90,12 @@ export default function HomePage({ params }: HomePageProps) {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        {/* Search */}
-        <div className="mb-6 max-w-md">
-          <SearchFilter
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
+        {/* Advanced Filter */}
+        <div className="mb-6">
+          <AdvancedFilter
+            filters={filters}
+            onFiltersChange={setFilters}
+            providers={providers}
             locale={locale}
           />
         </div>
@@ -97,19 +113,37 @@ export default function HomePage({ params }: HomePageProps) {
         {/* Models Grid */}
         {!loading && (
           <>
-            <div className="mb-4 text-sm text-muted-foreground">
-              {filteredModels.length} {filteredModels.length === 1 ? 'model' : 'models'} found
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCount)} of {totalCount} models
+                {totalCount > 20 && (
+                  <span className="ml-2 text-xs">
+                    (Page {currentPage} of {totalPages})
+                  </span>
+                )}
+              </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredModels.map((model) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              {paginatedModels.map((model) => (
                 <ModelCard key={model.id} model={model} locale={locale} />
               ))}
             </div>
 
-            {filteredModels.length === 0 && !loading && (
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
+              </div>
+            )}
+
+            {totalCount === 0 && !loading && (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No models found matching your search.</p>
+                <p className="text-muted-foreground">No models found matching your filters.</p>
               </div>
             )}
           </>

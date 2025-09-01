@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { t, type Locale } from '@/lib/i18n';
-import { fetchModels, OpenRouterModel, formatPrice, getModelProvider, formatContextLength } from '@/lib/openrouter';
+import { fetchModels, OpenRouterModel, formatPrice, getModelProvider, formatContextLength, fetchModelEndpoints, getModelAuthorAndSlug, ModelEndpoint } from '@/lib/openrouter';
 import LanguageSelector from '@/components/dashboard/LanguageSelector';
 
 interface ModelDetailsPageProps {
@@ -19,7 +19,9 @@ export default function ModelDetailsPage({ params }: ModelDetailsPageProps) {
   const router = useRouter();
   const [locale, setLocale] = useState<Locale>('en');
   const [model, setModel] = useState<OpenRouterModel | null>(null);
+  const [endpoints, setEndpoints] = useState<ModelEndpoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [endpointsLoading, setEndpointsLoading] = useState(false);
 
   useEffect(() => {
     params.then(async ({ locale: paramLocale, modelId }) => {
@@ -32,6 +34,20 @@ export default function ModelDetailsPage({ params }: ModelDetailsPageProps) {
         
         if (foundModel) {
           setModel(foundModel);
+          
+          // Load model endpoints
+          const authorSlug = getModelAuthorAndSlug(decodedModelId);
+          if (authorSlug) {
+            setEndpointsLoading(true);
+            try {
+              const endpointsData = await fetchModelEndpoints(authorSlug.author, authorSlug.slug);
+              setEndpoints(endpointsData);
+            } catch (error) {
+              console.error('Error fetching model endpoints:', error);
+            } finally {
+              setEndpointsLoading(false);
+            }
+          }
         } else {
           router.push(`/${paramLocale}`);
         }
@@ -205,6 +221,59 @@ export default function ModelDetailsPage({ params }: ModelDetailsPageProps) {
                       {formatContextLength(parseInt(model.per_request_limits.completion_tokens))}
                     </span>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Model Endpoints */}
+          {endpoints.length > 0 && (
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  Available Endpoints
+                  {endpointsLoading && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {endpoints.map((endpoint, index) => (
+                    <div key={endpoint.id || index} className="p-4 border rounded-lg">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className="font-medium">{endpoint.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Provider: {endpoint.provider}
+                          </p>
+                        </div>
+                        <Badge variant={endpoint.is_moderated ? "default" : "secondary"}>
+                          {endpoint.is_moderated ? 'Moderated' : 'Unmoderated'}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">Prompt:</span>
+                          <span className="font-mono ml-1">{formatPrice(endpoint.pricing.prompt)}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Completion:</span>
+                          <span className="font-mono ml-1">{formatPrice(endpoint.pricing.completion)}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Context:</span>
+                          <span className="font-mono ml-1">{formatContextLength(endpoint.context_length)}</span>
+                        </div>
+                        {endpoint.max_completion_tokens && (
+                          <div>
+                            <span className="text-muted-foreground">Max Completion:</span>
+                            <span className="font-mono ml-1">{formatContextLength(endpoint.max_completion_tokens)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
