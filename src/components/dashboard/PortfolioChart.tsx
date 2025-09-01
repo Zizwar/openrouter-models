@@ -26,7 +26,7 @@ export default function PortfolioChart({ title, data }: PortfolioChartProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {data.map((item, index) => {
+          {data.map((item) => {
             const percentage = (item.value / total) * 100;
             return (
               <div key={item.crypto.id} className="space-y-2">

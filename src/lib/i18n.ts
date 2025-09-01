@@ -14,5 +14,16 @@ export function getMessages(locale: Locale) {
 
 export function t(key: string, locale: Locale): string {
   const msgs = getMessages(locale);
-  return key.split('.').reduce((obj: any, k) => obj?.[k], msgs) || key;
+  const keys = key.split('.');
+  let result: unknown = msgs;
+  
+  for (const k of keys) {
+    if (result && typeof result === 'object' && k in (result as Record<string, unknown>)) {
+      result = (result as Record<string, unknown>)[k];
+    } else {
+      return key;
+    }
+  }
+  
+  return typeof result === 'string' ? result : key;
 }
