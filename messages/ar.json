@@ -1,0 +1,39 @@
+{
+  "navigation": {
+    "models": "نماذج الذكاء الاصطناعي",
+    "dashboard": "لوحة التحكم",
+    "settings": "الإعدادات"
+  },
+  "models": {
+    "title": "نماذج OpenRouter للذكاء الاصطناعي",
+    "subtitle": "استكشف وقارن نماذج الذكاء الاصطناعي من مختلف المزودين",
+    "searchPlaceholder": "البحث في النماذج...",
+    "provider": "المزود",
+    "contextLength": "طول السياق",
+    "pricing": "التسعير",
+    "prompt": "الطلب",
+    "completion": "الإكمال",
+    "free": "مجاني",
+    "viewDetails": "عرض التفاصيل",
+    "backToModels": "العودة للنماذج",
+    "modelDetails": "تفاصيل النموذج",
+    "description": "الوصف",
+    "specifications": "المواصفات",
+    "architecture": "البنية",
+    "modality": "النمط",
+    "tokenizer": "المحلل",
+    "instructType": "نوع التعليمات",
+    "limits": "الحدود",
+    "promptTokens": "رموز الطلب",
+    "completionTokens": "رموز الإكمال",
+    "moderated": "مُراقب",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ",
+    "retry": "إعادة المحاولة",
+    "search": "بحث"
+  }
+}

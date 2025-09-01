@@ -1,0 +1,39 @@
+{
+  "navigation": {
+    "models": "AI Models",
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "models": {
+    "title": "OpenRouter AI Models",
+    "subtitle": "Explore and compare AI models from various providers",
+    "searchPlaceholder": "Search models...",
+    "provider": "Provider",
+    "contextLength": "Context Length",
+    "pricing": "Pricing",
+    "prompt": "Prompt",
+    "completion": "Completion",
+    "free": "Free",
+    "viewDetails": "View Details",
+    "backToModels": "Back to Models",
+    "modelDetails": "Model Details",
+    "description": "Description",
+    "specifications": "Specifications",
+    "architecture": "Architecture",
+    "modality": "Modality",
+    "tokenizer": "Tokenizer",
+    "instructType": "Instruction Type",
+    "limits": "Limits",
+    "promptTokens": "Prompt Tokens",
+    "completionTokens": "Completion Tokens",
+    "moderated": "Moderated",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "retry": "Retry",
+    "search": "Search"
+  }
+}
