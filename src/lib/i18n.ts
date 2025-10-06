@@ -12,7 +12,7 @@ export function getMessages(locale: Locale) {
   return messages[locale] || messages.en;
 }
 
-export function t(key: string, locale: Locale): string {
+export function t(key: string, locale: Locale, values?: Record<string, string | number>): string {
   const msgs = getMessages(locale);
   const keys = key.split('.');
   let result: unknown = msgs;
@@ -25,5 +25,14 @@ export function t(key: string, locale: Locale): string {
     }
   }
   
-  return typeof result === 'string' ? result : key;
+  if (typeof result === 'string') {
+    if (values) {
+      return result.replace(/\{(\w+)\}/g, (match, key) => {
+        return values[key] !== undefined ? String(values[key]) : match;
+      });
+    }
+    return result;
+  }
+
+  return key;
 }

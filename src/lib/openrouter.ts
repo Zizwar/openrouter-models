@@ -37,6 +37,7 @@ export async function fetchModels(): Promise<OpenRouterModel[]> {
       headers: {
         'Accept': 'application/json',
       },
+      next: { revalidate: 3600 }, // Revalidate every hour
     });
     
     if (!response.ok) {
@@ -50,6 +51,10 @@ export async function fetchModels(): Promise<OpenRouterModel[]> {
     return [];
   }
 }
+
+
+
+
 
 export function formatPrice(price: string): string {
   const numPrice = parseFloat(price);

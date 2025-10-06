@@ -1,79 +1,36 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { t, type Locale } from '@/lib/i18n';
-import { fetchModels, OpenRouterModel, formatPrice, getModelProvider, formatContextLength, fetchModelEndpoints, getModelAuthorAndSlug, ModelEndpoint } from '@/lib/openrouter';
+import { fetchModels, formatPrice, getModelProvider, formatContextLength, fetchModelEndpoints, getModelAuthorAndSlug, ModelEndpoint } from '@/lib/openrouter';
 import LanguageSelector from '@/components/dashboard/LanguageSelector';
+import ModelPlayground from '@/components/models/ModelPlayground';
 
 interface ModelDetailsPageProps {
-  params: Promise<{ locale: string; modelId: string }>;
+  params: Promise<{ 
+    locale: Locale;
+    modelId: string 
+  }>;
 }
 
-export default function ModelDetailsPage({ params }: ModelDetailsPageProps) {
-  const router = useRouter();
-  const [locale, setLocale] = useState<Locale>('en');
-  const [model, setModel] = useState<OpenRouterModel | null>(null);
-  const [endpoints, setEndpoints] = useState<ModelEndpoint[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [endpointsLoading, setEndpointsLoading] = useState(false);
+export default async function ModelDetailsPage({ params }: ModelDetailsPageProps) {
+  const { locale, modelId } = await params;
+  const decodedModelId = decodeURIComponent(modelId);
+  const authorSlug = getModelAuthorAndSlug(decodedModelId);
 
-  useEffect(() => {
-    params.then(async ({ locale: paramLocale, modelId }) => {
-      setLocale(paramLocale as Locale);
-      
-      try {
-        const models = await fetchModels();
-        const decodedModelId = decodeURIComponent(modelId);
-        const foundModel = models.find(m => m.id === decodedModelId);
-        
-        if (foundModel) {
-          setModel(foundModel);
-          
-          // Load model endpoints
-          const authorSlug = getModelAuthorAndSlug(decodedModelId);
-          if (authorSlug) {
-            setEndpointsLoading(true);
-            try {
-              const endpointsData = await fetchModelEndpoints(authorSlug.author, authorSlug.slug);
-              setEndpoints(endpointsData);
-            } catch (error) {
-              console.error('Error fetching model endpoints:', error);
-            } finally {
-              setEndpointsLoading(false);
-            }
-          }
-        } else {
-          router.push(`/${paramLocale}`);
-        }
-      } catch (error) {
-        console.error('Error fetching model:', error);
-        router.push(`/${paramLocale}`);
-      } finally {
-        setLoading(false);
-      }
-    });
-  }, [params, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{t('common.loading', locale)}</p>
-        </div>
-      </div>
-    );
-  }
+  const allModels = await fetchModels();
+  const model = allModels.find(m => m.id === decodedModelId);
 
   if (!model) {
-    return null;
+    notFound();
   }
+
+  const endpoints = authorSlug
+    ? await fetchModelEndpoints(authorSlug.author, authorSlug.slug)
+    : [];
 
   const provider = getModelProvider(model.id);
   const promptPrice = formatPrice(model.pricing.prompt);
@@ -232,9 +189,6 @@ export default function ModelDetailsPage({ params }: ModelDetailsPageProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   Available Endpoints
-                  {endpointsLoading && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -278,6 +232,9 @@ export default function ModelDetailsPage({ params }: ModelDetailsPageProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* Playground */}
+          <ModelPlayground model={model} />
 
           {/* Model ID */}
           <Card className="lg:col-span-2">

@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { t, type Locale } from '@/lib/i18n';
-import { Search, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Filter, X, ChevronDown, ChevronUp, List, Heart } from 'lucide-react';
 import { OpenRouterProvider } from '@/lib/openrouter';
+
+export type SortByType = 'default' | 'context:asc' | 'context:desc' | 'price:asc' | 'price:desc' | 'date:desc';
 
 export interface FilterOptions {
   search: string;
@@ -22,6 +24,8 @@ export interface FilterOptions {
   };
   modality: string[];
   isModerated: boolean | null;
+  sortBy: SortByType;
+  showFavoritesOnly: boolean;
 }
 
 interface AdvancedFilterProps {
@@ -33,11 +37,20 @@ interface AdvancedFilterProps {
 
 const MODALITIES = ['text', 'text+image', 'image', 'multimodal'];
 
-export default function AdvancedFilter({ 
-  filters, 
-  onFiltersChange, 
-  providers, 
-  locale 
+const SORT_OPTIONS: { value: SortByType, label: string }[] = [
+  { value: 'default', label: 'Default' },
+  { value: 'context:desc', label: 'Context Length (High to Low)' },
+  { value: 'context:asc', label: 'Context Length (Low to High)' },
+  { value: 'price:asc', label: 'Prompt Price (Low to High)' },
+  { value: 'price:desc', label: 'Prompt Price (High to Low)' },
+  { value: 'date:desc', label: 'Creation Date (Newest First)' },
+];
+
+export default function AdvancedFilter({
+  filters,
+  onFiltersChange,
+  providers,
+  locale
 }: AdvancedFilterProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
@@ -58,15 +71,17 @@ export default function AdvancedFilter({
       contextLength: { min: null, max: null },
       modality: [],
       isModerated: null,
+      sortBy: 'default',
+      showFavoritesOnly: false,
     };
     setLocalFilters(emptyFilters);
     onFiltersChange(emptyFilters);
   };
 
-  const updateSearch = (search: string) => {
-    const newFilters = { ...localFilters, search };
+  const updateSingleFilter = <K extends keyof FilterOptions>(key: K, value: FilterOptions[K]) => {
+    const newFilters = { ...localFilters, [key]: value };
     setLocalFilters(newFilters);
-    onFiltersChange(newFilters); // Apply search immediately
+    onFiltersChange(newFilters); // Apply immediately
   };
 
   const toggleProvider = (providerId: string) => {
@@ -84,7 +99,8 @@ export default function AdvancedFilter({
     setLocalFilters({ ...localFilters, modality: newModalities });
   };
 
-  const activeFiltersCount = 
+  const activeFiltersCount =
+    (localFilters.showFavoritesOnly ? 1 : 0) +
     localFilters.providers.length +
     localFilters.modality.length +
     (localFilters.priceRange.min !== null ? 1 : 0) +
@@ -95,26 +111,52 @@ export default function AdvancedFilter({
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          type="text"
-          placeholder={t('models.searchPlaceholder', locale)}
-          value={localFilters.search}
-          onChange={(e) => updateSearch(e.target.value)}
-          className="pl-10 pr-12"
-        />
-        {localFilters.search && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-            onClick={() => updateSearch('')}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Search Bar */}
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            type="text"
+            placeholder={t('models.searchPlaceholder', locale)}
+            value={localFilters.search}
+            onChange={(e) => updateSingleFilter('search', e.target.value)}
+            className="pl-10 pr-12 h-10"
+          />
+          {localFilters.search && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+              onClick={() => updateSingleFilter('search', '')}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        
+        {/* Sort By Dropdown */}
+        <div className="flex items-center gap-2">
+          <List className="h-4 w-4 text-muted-foreground" />
+          <select
+            value={localFilters.sortBy}
+            onChange={(e) => updateSingleFilter('sortBy', e.target.value as SortByType)}
+            className="bg-background border border-input rounded-md px-3 py-2 text-sm h-10"
           >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+            {SORT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Favorites Toggle */}
+        <Button
+          variant={localFilters.showFavoritesOnly ? 'default' : 'outline'}
+          onClick={() => updateSingleFilter('showFavoritesOnly', !localFilters.showFavoritesOnly)}
+          className="h-10 flex items-center gap-2"
+        >
+          <Heart className="h-4 w-4" />
+          Favorites
+        </Button>
       </div>
 
       {/* Advanced Filters Toggle */}
@@ -304,6 +346,18 @@ export default function AdvancedFilter({
       {/* Active Filters Summary */}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap gap-2">
+          {localFilters.showFavoritesOnly && (
+            <Badge
+              variant="secondary"
+              className="flex items-center gap-1"
+            >
+              Favorites Only
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => updateSingleFilter('showFavoritesOnly', false)}
+              />
+            </Badge>
+          )}
           {localFilters.providers.map((providerSlug, index) => {
             const provider = providers.find(p => p.slug === providerSlug);
             return provider ? (

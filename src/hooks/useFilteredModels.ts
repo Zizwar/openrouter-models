@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { OpenRouterModel, OpenRouterProvider, getModelProvider } from '@/lib/openrouter';
 import { FilterOptions } from '@/components/models/AdvancedFilter';
+import { useFavorites } from '@/context/FavoritesContext';
 
 interface UseFilteredModelsResult {
   filteredModels: OpenRouterModel[];
@@ -23,10 +24,16 @@ export function useFilteredModels(
   itemsPerPage: number = 20
 ): UseFilteredModelsResult {
   const [currentPage, setCurrentPage] = useState(1);
+  const { favorites } = useFavorites();
 
   // Apply all filters
   const filteredModels = useMemo(() => {
-    return models.filter((model) => {
+    const tempModels = models.filter((model) => {
+      // Favorites filter
+      if (filters.showFavoritesOnly && !favorites.includes(model.id)) {
+        return false;
+      }
+
       // Search filter (immediate)
       if (filters.search.trim()) {
         const searchTerm = filters.search.toLowerCase().trim();
@@ -84,7 +91,29 @@ export function useFilteredModels(
 
       return true;
     });
-  }, [models, providers, filters]);
+
+    // Apply sorting
+    if (filters.sortBy !== 'default') {
+      tempModels.sort((a, b) => {
+        switch (filters.sortBy) {
+          case 'context:asc':
+            return a.context_length - b.context_length;
+          case 'context:desc':
+            return b.context_length - a.context_length;
+          case 'price:asc':
+            return parseFloat(a.pricing.prompt) - parseFloat(b.pricing.prompt);
+          case 'price:desc':
+            return parseFloat(b.pricing.prompt) - parseFloat(a.pricing.prompt);
+          case 'date:desc':
+            return b.created - a.created;
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return tempModels;
+  }, [models, providers, filters, favorites]);
 
   // Calculate pagination values
   const totalCount = filteredModels.length;
