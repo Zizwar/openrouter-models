@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'OpenRouter Models Dashboard',
   description: 'Modern dashboard for browsing OpenRouter AI models',
+  other: {
+    'google-adsense-account': 'ca-pub-5448783245957365',
+  },
 }
 
 export default function RootLayout({
