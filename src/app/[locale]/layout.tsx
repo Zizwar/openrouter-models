@@ -5,8 +5,8 @@ import '../globals.css'
 
 
 export const metadata: Metadata = {
-  title: 'Crypto Dashboard',
-  description: 'Modern cryptocurrency dashboard with real-time data',
+  title: 'Open Router Models',
+  description: 'A dashboard to browse and compare Open Router Models',
 }
 
 import { ComparisonProvider } from '@/context/ComparisonContext';
